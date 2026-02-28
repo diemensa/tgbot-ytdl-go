@@ -17,6 +17,8 @@ type SlogLogger struct {
 
 func NewSlogLogger() *SlogLogger {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	return &SlogLogger{
 		l: logger,
 	}
