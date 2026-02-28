@@ -73,7 +73,7 @@ func handleAudioDownload(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Upda
 	_, err = bot.Send(audio)
 	if err != nil {
 		log.Error(fmt.Sprintf("error during audio sending: %v", err))
-		respondWithErr(log, bot, update, fmt.Errorf("error during audio sending"))
+		respondWithErr(log, bot, update, fmt.Errorf("error during audio sending. try again"))
 	}
 }
 

@@ -19,7 +19,7 @@ func (err *getErr) Error() string {
 
 func newGetErr() *getErr {
 	return &getErr{
-		msg: "couldn't download video from the link",
+		msg: "couldn't download video from the link. try again",
 	}
 }
 
