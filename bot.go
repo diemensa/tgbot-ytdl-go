@@ -1,4 +1,4 @@
-package tgbot_ytdl_go
+package main
 
 import (
 	"fmt"
