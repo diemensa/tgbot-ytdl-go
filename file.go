@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/kkdai/youtube/v2"
+	"github.com/mikkyang/id3-go"
 	"io"
 	"os"
 	"os/exec"
@@ -54,7 +55,7 @@ func DownloadAudioFromVideo(log Logger, link string) (string, error) {
 		}
 	}()
 
-	audioFileName, err := convertVideoToAudio(tempVid, vidTitle)
+	audioFileName, err := convertVideoToAudio(tempVid, vidTitle, log)
 	if err != nil {
 		log.Error(fmt.Sprintf("error during file format conversion: %v", err))
 		return "", dwnldErr
@@ -64,12 +65,22 @@ func DownloadAudioFromVideo(log Logger, link string) (string, error) {
 
 }
 
-func convertVideoToAudio(videoPath, videoTitle string) (string, error) {
+func convertVideoToAudio(videoPath, videoTitle string, log Logger) (string, error) {
 	audioFileName := createName(videoTitle, ".mp3")
 	err := convertToMP3(videoPath, audioFileName)
 	if err != nil {
 		return "", err
 	}
+
+	file, err := id3.Open(audioFileName)
+	if err != nil {
+		return "", fmt.Errorf("error during metadata editing: %v", err)
+	}
+
+	defer errClose(file.Close, log)
+
+	file.SetTitle(audioFileName[9:])
+
 	return audioFileName, nil
 }
 
@@ -111,7 +122,7 @@ func errClose(closerFunc func() error, log Logger) {
 }
 
 func createName(name, format string) string {
-	return fmt.Sprintf("%s-%s.%s", name, uuid.New().String()[:8], format)
+	return fmt.Sprintf("%s-%s.%s", uuid.New().String()[:8], name, format)
 }
 
 func convertToMP3(input string, output string) error {

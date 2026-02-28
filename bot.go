@@ -58,13 +58,7 @@ func handleAudioDownload(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Upda
 
 	if err != nil {
 		respondWithErr(log, bot, update, err)
-	}
-
-	audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, filepath)
-
-	_, err = bot.Send(audio)
-	if err != nil {
-		log.Error(fmt.Sprintf("error during audio sending: %v", err))
+		return
 	}
 
 	go func() {
@@ -73,6 +67,13 @@ func handleAudioDownload(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Upda
 			log.Error(fmt.Sprintf("error during audio file deletion: %v", err))
 		}
 	}()
+
+	audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, filepath)
+
+	_, err = bot.Send(audio)
+	if err != nil {
+		log.Error(fmt.Sprintf("error during audio sending: %v", err))
+	}
 }
 
 func respondWithErr(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update, err error) {
