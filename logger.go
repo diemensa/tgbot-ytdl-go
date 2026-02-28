@@ -12,11 +12,14 @@ type Logger interface {
 	Fatal(msg string, err error)
 }
 type SlogLogger struct {
-	l slog.Logger
+	l *slog.Logger
 }
 
 func NewSlogLogger() *SlogLogger {
-	return &SlogLogger{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	return &SlogLogger{
+		l: logger,
+	}
 }
 
 func (sl *SlogLogger) Info(msg string) {
