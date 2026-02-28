@@ -19,7 +19,9 @@ func StartBot(log Logger) {
 }
 
 func catchUpdates(log Logger, bot *tgbotapi.BotAPI) {
-	log.Info("waiting for messages from now on")
+
+	log.Info("waiting for links from now on")
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -32,31 +34,48 @@ func catchUpdates(log Logger, bot *tgbotapi.BotAPI) {
 	for update := range updates {
 		if update.Message != nil {
 
-			videoLink := update.Message.Text
-			filepath, err := DownloadAudioFromVideo(log, videoLink)
-
-			if err != nil {
-				respondWithErr(log, bot, update, err)
+			switch {
+			case update.Message.Text == "/start":
+				handleStart(log, bot, &update)
+			default:
+				handleAudioDownload(log, bot, &update)
 			}
-
-			audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, filepath)
-
-			_, err = bot.Send(audio)
-			if err != nil {
-				log.Error(fmt.Sprintf("error during audio sending: %v", err))
-			}
-
-			go func() {
-				err := deleteFile(filepath, log)
-				if err != nil {
-					log.Error(fmt.Sprintf("error during audio file deletion: %v", err))
-				}
-			}()
 		}
 	}
 }
 
-func respondWithErr(log Logger, bot *tgbotapi.BotAPI, update tgbotapi.Update, err error) {
+func handleStart(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hi! Send me the link to YT video and I'll download its audio")
+	_, err := bot.Send(msg)
+	if err != nil {
+		log.Error(fmt.Sprintf("error sending /start message: %v", err))
+	}
+}
+
+func handleAudioDownload(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	videoLink := update.Message.Text
+	filepath, err := DownloadAudioFromVideo(log, videoLink)
+
+	if err != nil {
+		respondWithErr(log, bot, update, err)
+	}
+
+	audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, filepath)
+
+	_, err = bot.Send(audio)
+	if err != nil {
+		log.Error(fmt.Sprintf("error during audio sending: %v", err))
+	}
+
+	go func() {
+		err := deleteFile(filepath, log)
+		if err != nil {
+			log.Error(fmt.Sprintf("error during audio file deletion: %v", err))
+		}
+	}()
+}
+
+func respondWithErr(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update, err error) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, err.Error())
 	msg.ReplyToMessageID = update.Message.MessageID
 
