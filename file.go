@@ -42,7 +42,9 @@ func DownloadAudioFromVideo(log Logger, link string) (string, error) {
 
 	defer errClose(stream.Close, log)
 
-	tempVid := createName(".mp4")
+	vidTitle := video.Title
+
+	tempVid := createName(vidTitle, ".mp4")
 	err = createFile(stream, tempVid, log)
 
 	defer func() {
@@ -52,7 +54,7 @@ func DownloadAudioFromVideo(log Logger, link string) (string, error) {
 		}
 	}()
 
-	audioFileName, err := convertVideoToAudio(tempVid)
+	audioFileName, err := convertVideoToAudio(tempVid, vidTitle)
 	if err != nil {
 		log.Error(fmt.Sprintf("error during file format conversion: %v", err))
 		return "", dwnldErr
@@ -62,8 +64,8 @@ func DownloadAudioFromVideo(log Logger, link string) (string, error) {
 
 }
 
-func convertVideoToAudio(videoPath string) (string, error) {
-	audioFileName := createName(".mp3")
+func convertVideoToAudio(videoPath, videoTitle string) (string, error) {
+	audioFileName := createName(videoTitle, ".mp3")
 	err := convertToMP3(videoPath, audioFileName)
 	if err != nil {
 		return "", err
@@ -108,8 +110,8 @@ func errClose(closerFunc func() error, log Logger) {
 	}
 }
 
-func createName(format string) string {
-	return fmt.Sprintf("%s.%s", uuid.New().String()[:8], format)
+func createName(name, format string) string {
+	return fmt.Sprintf("%s-%s.%s", name, uuid.New().String()[:8], format)
 }
 
 func convertToMP3(input string, output string) error {
