@@ -2,7 +2,6 @@ package tgbot_ytdl_go
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/kkdai/youtube/v2"
 	"github.com/mikkyang/id3-go"
 	"io"
@@ -79,7 +78,8 @@ func convertVideoToAudio(videoPath, videoTitle string, log Logger) (string, erro
 
 	defer errClose(file.Close, log)
 
-	file.SetTitle(audioFileName[9:])
+	file.SetTitle(videoTitle)
+	file.SetArtist("")
 
 	return audioFileName, nil
 }
@@ -122,7 +122,7 @@ func errClose(closerFunc func() error, log Logger) {
 }
 
 func createName(name, format string) string {
-	return fmt.Sprintf("%s-%s.%s", uuid.New().String()[:8], name, format)
+	return fmt.Sprintf("%s.%s", name, format)
 }
 
 func convertToMP3(input string, output string) error {
