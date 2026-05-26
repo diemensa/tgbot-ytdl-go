@@ -17,7 +17,7 @@ tgbot-ytdl – телеграм бот для скачивания видео с
 ### Linux/MacOS
 1. Клонировать репозиторий:
    ```bash
-   https://github.com/diemensa/tgbot-ytdl-go
+   git clone https://github.com/diemensa/tgbot-ytdl-go
    cd tgbot-ytdl-go
    
 2. Установить переменную окружения BOT_TOKEN
