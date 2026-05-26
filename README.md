@@ -24,6 +24,9 @@ tgbot-ytdl – телеграм бот для скачивания видео с
    ```bash
    export BOT_TOKEN="PUT_HERE_BOTFATHER_TOKEN"   
 
-3. Запустить бота:
+3. Собрать билд:
    ```bash
-   go run main.go
+   go build
+
+4. ```bash
+   ./ytdl-tgbot
