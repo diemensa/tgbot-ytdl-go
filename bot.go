@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"os"
+	"path/filepath"
+	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func StartBot(log Logger) {
@@ -34,8 +37,8 @@ func catchUpdates(log Logger, bot *tgbotapi.BotAPI) {
 	for update := range updates {
 		if update.Message != nil {
 
-			switch {
-			case update.Message.Text == "/start":
+			switch update.Message.Text {
+			case "/start":
 				handleStart(log, bot, &update)
 			default:
 				handleAudioDownload(log, bot, &update)
@@ -54,27 +57,31 @@ func handleStart(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 func handleAudioDownload(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	videoLink := update.Message.Text
-	filepath, err := DownloadAudioFromVideo(log, videoLink)
+	pathToAudio, err := DownloadAudioFromVideo(log, videoLink)
 
 	if err != nil {
 		respondWithErr(log, bot, update, err)
 		return
 	}
 
-	go func() {
-		err := deleteFile(filepath, log)
+	defer func() {
+		err := deleteFile(pathToAudio, log)
 		if err != nil {
 			log.Error(fmt.Sprintf("error during audio file deletion: %v", err))
 		}
 	}()
 
-	audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, filepath)
+	audio := tgbotapi.NewAudioUpload(update.Message.Chat.ID, pathToAudio)
 
 	_, err = bot.Send(audio)
 	if err != nil {
 		log.Error(fmt.Sprintf("error during audio sending: %v", err))
 		respondWithErr(log, bot, update, fmt.Errorf("error during audio sending. try again"))
+		return
 	}
+
+	audioName := strings.TrimSuffix(filepath.Base(pathToAudio), filepath.Ext(pathToAudio))
+	log.Info(fmt.Sprintf("successfully sent audio %q", audioName))
 }
 
 func respondWithErr(log Logger, bot *tgbotapi.BotAPI, update *tgbotapi.Update, err error) {

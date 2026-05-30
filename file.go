@@ -122,7 +122,7 @@ func errClose(closerFunc func() error, log Logger) {
 }
 
 func createName(name, format string) string {
-	return fmt.Sprintf("%s.%s", name, format)
+	return fmt.Sprintf("%s%s", name, format)
 }
 
 func convertToMP3(input string, output string) error {
